@@ -1,0 +1,202 @@
+{
+  "name": "3d-model-viewer",
+  "displayName": "3D Model Viewer (GLB, glTF, STL, OBJ, PLY)",
+  "description": "3D model viewer for GLB, glTF, STL, OBJ, PLY and 3MF files in VS Code, with wireframe, glTF animations, a scene tree, model stats, point-to-point measuring and PNG screenshots, all offline.",
+  "version": "0.1.0",
+  "publisher": "zovo",
+  "license": "MIT",
+  "icon": "icon.png",
+  "galleryBanner": {
+    "color": "#1B1F2E",
+    "theme": "dark"
+  },
+  "engines": {
+    "vscode": "^1.90.0",
+    "node": ">=18"
+  },
+  "categories": [
+    "Visualization",
+    "Other"
+  ],
+  "keywords": [
+    "3d model viewer",
+    "3d viewer",
+    "3d model",
+    "model viewer",
+    "glb",
+    "gltf",
+    "glb viewer",
+    "gltf viewer",
+    "stl",
+    "stl viewer",
+    "obj",
+    "obj viewer",
+    "ply",
+    "point cloud",
+    "3mf",
+    "mesh viewer",
+    "mesh",
+    "three.js",
+    "3d preview",
+    "cad",
+    "3d printing",
+    "wireframe",
+    "animation",
+    "normals",
+    "measure",
+    "scene graph",
+    "game assets",
+    "webgl",
+    "mtl",
+    "offline"
+  ],
+  "main": "./dist/extension.js",
+  "activationEvents": [],
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": true
+    },
+    "virtualWorkspaces": true
+  },
+  "contributes": {
+    "customEditors": [
+      {
+        "viewType": "modelViewer.preview",
+        "displayName": "3D Model Viewer",
+        "selector": [
+          { "filenamePattern": "*.glb" },
+          { "filenamePattern": "*.gltf" },
+          { "filenamePattern": "*.stl" },
+          { "filenamePattern": "*.obj" },
+          { "filenamePattern": "*.ply" },
+          { "filenamePattern": "*.3mf" }
+        ],
+        "priority": "default"
+      }
+    ],
+    "commands": [
+      {
+        "command": "modelViewer.openWalkthrough",
+        "title": "Get Started",
+        "category": "3D Model Viewer"
+      },
+      {
+        "command": "modelViewer.openWith",
+        "title": "Open in 3D Model Viewer",
+        "category": "3D Model Viewer"
+      }
+    ],
+    "menus": {
+      "explorer/context": [
+        {
+          "command": "modelViewer.openWith",
+          "when": "resourceExtname =~ /\\.(glb|gltf|stl|obj|ply|3mf)$/i",
+          "group": "navigation@9"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "modelViewer.openWith",
+          "when": "false"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "3D Model Viewer",
+      "properties": {
+        "modelViewer.maxFileMB": {
+          "type": "number",
+          "default": 1024,
+          "minimum": 1,
+          "maximum": 4096,
+          "description": "Files up to this size are opened. Larger files show a message and are not read."
+        },
+        "modelViewer.background": {
+          "type": "string",
+          "enum": ["theme", "dark", "light"],
+          "enumDescriptions": ["Use the editor background of the current theme.", "Dark grey.", "Light grey."],
+          "default": "theme",
+          "description": "Background behind the model when a file opens. The toolbar can change it per tab."
+        },
+        "modelViewer.upAxis": {
+          "type": "string",
+          "enum": ["auto", "y", "z"],
+          "enumDescriptions": ["Z up for STL and 3MF, Y up for glTF, OBJ and PLY.", "Y up for every file.", "Z up for every file."],
+          "default": "auto",
+          "description": "Which model axis points up when a file opens."
+        },
+        "modelViewer.askForRating": {
+          "type": "boolean",
+          "default": true,
+          "description": "Ask one time for a Marketplace rating after you have used 3D Model Viewer for a few days. You can answer \"Later\" or \"Don't ask again\". Nothing is sent anywhere."
+        }
+      }
+    },
+    "walkthroughs": [
+      {
+        "id": "modelViewer.start",
+        "title": "Get started with 3D Model Viewer",
+        "description": "Look at GLB, glTF, STL, OBJ, PLY and 3MF models without leaving VS Code.",
+        "steps": [
+          {
+            "id": "open",
+            "title": "Open a 3D model",
+            "description": "Click a .glb, .gltf, .stl, .obj, .ply or .3mf file in the Explorer. Drag to orbit, right-drag to pan and scroll to zoom.\n[Find a model file](command:workbench.action.quickOpen?%5B%22.glb%22%5D)",
+            "media": {
+              "image": "images/robot-arm.png",
+              "altText": "A robot arm GLB in 3D Model Viewer with the animation bar, model stats and the scene tree."
+            },
+            "completionEvents": [
+              "onCommand:workbench.action.quickOpen"
+            ]
+          },
+          {
+            "id": "inspect",
+            "title": "Inspect the mesh",
+            "description": "Turn on Wireframe, Normals and Bounds, and switch between smooth and flat shading. The panel lists vertices, triangles, materials and the size.",
+            "media": {
+              "markdown": "walkthrough/inspect.md"
+            }
+          },
+          {
+            "id": "measure",
+            "title": "Measure and save a screenshot",
+            "description": "Press Measure and click two points on the model to get the distance. Screenshot saves the view as a PNG.",
+            "media": {
+              "markdown": "walkthrough/measure.md"
+            }
+          },
+          {
+            "id": "settings",
+            "title": "Background, up axis and size limit",
+            "description": "Pick the default background and up axis, and the largest file to open.\n[Open settings](command:workbench.action.openSettings?%5B%22modelViewer%22%5D)",
+            "media": {
+              "markdown": "walkthrough/settings.md"
+            },
+            "completionEvents": [
+              "onCommand:workbench.action.openSettings"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "scripts": {
+    "build": "node scripts/build.js --production",
+    "test": "node scripts/build.js --production && node --test \"test/*.test.js\" \"test/*.test.mjs\"",
+    "samples": "node scripts/make-samples.mjs samples",
+    "package": "npm run build && npx -y @vscode/vsce package --no-dependencies -o dist/"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.2",
+    "three": "0.187.0"
+  },
+  "homepage": "https://github.com/theluckystrike/model-viewer-vscode#readme",
+  "bugs": {
+    "url": "https://github.com/theluckystrike/model-viewer-vscode/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/theluckystrike/model-viewer-vscode"
+  }
+}
