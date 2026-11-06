@@ -2,7 +2,7 @@
   "name": "3d-model-viewer",
   "displayName": "3D Model Viewer (GLB, glTF, STL, OBJ, PLY)",
   "description": "3D model viewer for GLB, glTF, STL, OBJ, PLY and 3MF files in VS Code, with wireframe, glTF animations, a scene tree, model stats, point-to-point measuring and PNG screenshots, all offline.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "publisher": "zovo",
   "license": "MIT",
   "icon": "icon.png",
@@ -64,12 +64,24 @@
         "viewType": "modelViewer.preview",
         "displayName": "3D Model Viewer",
         "selector": [
-          { "filenamePattern": "*.glb" },
-          { "filenamePattern": "*.gltf" },
-          { "filenamePattern": "*.stl" },
-          { "filenamePattern": "*.obj" },
-          { "filenamePattern": "*.ply" },
-          { "filenamePattern": "*.3mf" }
+          {
+            "filenamePattern": "*.glb"
+          },
+          {
+            "filenamePattern": "*.gltf"
+          },
+          {
+            "filenamePattern": "*.stl"
+          },
+          {
+            "filenamePattern": "*.obj"
+          },
+          {
+            "filenamePattern": "*.ply"
+          },
+          {
+            "filenamePattern": "*.3mf"
+          }
         ],
         "priority": "default"
       }
@@ -83,6 +95,16 @@
       {
         "command": "modelViewer.openWith",
         "title": "Open in 3D Model Viewer",
+        "category": "3D Model Viewer"
+      },
+      {
+        "command": "modelViewer.supportDeveloper",
+        "title": "Support the developer",
+        "category": "3D Model Viewer"
+      },
+      {
+        "command": "modelViewer.moreViewers",
+        "title": "More free viewers",
         "category": "3D Model Viewer"
       }
     ],
@@ -113,15 +135,31 @@
         },
         "modelViewer.background": {
           "type": "string",
-          "enum": ["theme", "dark", "light"],
-          "enumDescriptions": ["Use the editor background of the current theme.", "Dark grey.", "Light grey."],
+          "enum": [
+            "theme",
+            "dark",
+            "light"
+          ],
+          "enumDescriptions": [
+            "Use the editor background of the current theme.",
+            "Dark grey.",
+            "Light grey."
+          ],
           "default": "theme",
           "description": "Background behind the model when a file opens. The toolbar can change it per tab."
         },
         "modelViewer.upAxis": {
           "type": "string",
-          "enum": ["auto", "y", "z"],
-          "enumDescriptions": ["Z up for STL and 3MF, Y up for glTF, OBJ and PLY.", "Y up for every file.", "Z up for every file."],
+          "enum": [
+            "auto",
+            "y",
+            "z"
+          ],
+          "enumDescriptions": [
+            "Z up for STL and 3MF, Y up for glTF, OBJ and PLY.",
+            "Y up for every file.",
+            "Z up for every file."
+          ],
           "default": "auto",
           "description": "Which model axis points up when a file opens."
         },
@@ -129,6 +167,11 @@
           "type": "boolean",
           "default": true,
           "description": "Ask one time for a Marketplace rating after you have used 3D Model Viewer for a few days. You can answer \"Later\" or \"Don't ask again\". Nothing is sent anywhere."
+        },
+        "modelViewer.showSupportLinks": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show the small Sponsor and More free viewers links in the status line of the viewer. The change shows in files you open next. Nothing is sent anywhere."
         }
       }
     },
@@ -198,5 +241,8 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/theluckystrike/model-viewer-vscode"
+  },
+  "sponsor": {
+    "url": "https://github.com/sponsors/theluckystrike"
   }
 }

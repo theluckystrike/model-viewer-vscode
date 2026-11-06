@@ -54,14 +54,14 @@ test('activate registers the custom editor and the commands; manifest matches', 
   ext.activate(ctxOf());
   assert.equal(vscodeMock.window.registered[0][0], 'modelViewer.preview');
   assert.equal(vscodeMock.window.registered[0][2].supportsMultipleEditorsPerDocument, true);
-  assert.deepEqual(vscodeMock.commands.list.sort(), ['modelViewer.openWalkthrough', 'modelViewer.openWith']);
+  assert.deepEqual(vscodeMock.commands.list.sort(), ['modelViewer.moreViewers', 'modelViewer.openWalkthrough', 'modelViewer.openWith', 'modelViewer.supportDeveloper']);
   const pkg = require('../package.json');
   assert.equal(pkg.contributes.customEditors[0].viewType, ext.VIEW_TYPE);
   assert.deepEqual(pkg.contributes.customEditors[0].selector.map(s => s.filenamePattern), ['*.glb', '*.gltf', '*.stl', '*.obj', '*.ply', '*.3mf']);
   assert.ok(pkg.displayName.toLowerCase().startsWith('3d model viewer') && pkg.displayName.length <= 45);
   assert.ok(pkg.keywords.length <= 30);
   assert.equal(pkg.publisher, 'zovo');
-  assert.equal(pkg.version, '0.1.0');
+  assert.equal(pkg.version, '0.1.1');
 });
 
 test('webview options: scripts on, roots are dist, media, the model folder and workspace folders; CSP set', async () => {
@@ -156,4 +156,30 @@ test('after dispose nothing is posted', async () => {
   f.close();
   await f.send({ type: 'ready' });
   assert.equal(f.sent.length, 0);
+});
+
+// ---------- support links (Sponsor, More free viewers) ----------
+test('support: package.json has the sponsor field, the two commands and the setting', () => {
+  const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'package.json'), 'utf8'));
+  const support = require('../src/support');
+  assert.equal(pkg.sponsor.url, 'https://github.com/sponsors/theluckystrike');
+  assert.equal(pkg.sponsor.url, support.sponsorUrl());
+  const ids = pkg.contributes.commands.map(c => c.command);
+  assert.ok(ids.includes('modelViewer.supportDeveloper') && ids.includes('modelViewer.moreViewers'));
+  const prop = [].concat(pkg.contributes.configuration).map(c => c.properties['modelViewer.showSupportLinks']).find(Boolean);
+  assert.equal(prop.default, true);
+  assert.ok(support.otherProducts('zovo.3d-model-viewer').every(p => p.id !== 'zovo.3d-model-viewer'));
+});
+
+test('support: the footer shows by default and modelViewer.showSupportLinks=false hides it', async () => {
+  try {
+    for (const [val, shown] of [[undefined, true], [false, false]]) {
+      if (val === undefined) delete state.config.showSupportLinks; else state.config.showSupportLinks = val;
+      const f = await open(model);
+      const html = f.panel.webview.html;
+      assert.equal(/id="zovo-support"/.test(html), shown, String(val));
+      assert.equal(html.includes('command:modelViewer.supportDeveloper'), shown);
+      assert.deepEqual(f.panel.webview.options.enableCommandUris, ['modelViewer.supportDeveloper', 'modelViewer.moreViewers', 'workbench.action.openSettings']);
+    }
+  } finally { delete state.config.showSupportLinks; }
 });

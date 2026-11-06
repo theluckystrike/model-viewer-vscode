@@ -4,6 +4,7 @@ const path = require('path');
 const { buildHtml } = require('./html');
 const { validateWebviewMessage, sizePlan, fmtSize, formatOf } = require('./core/protocol');
 const { createRatingPrompt } = require('./rate');
+const { registerSupport, commandUris, showLinks } = require('./support');
 
 const VIEW_TYPE = 'modelViewer.preview';
 let rating = { success() {} };
@@ -30,13 +31,15 @@ class ModelEditorProvider {
     const folder = uri.with({ path: path.posix.dirname(uri.path) });
     // The model folder (and the workspace folders) are readable, so .bin, .mtl and textures next to the model load.
     const roots = [dist, media, folder, ...((vscode.workspace.workspaceFolders || []).map(f => f.uri))];
-    panel.webview.options = { enableScripts: true, localResourceRoots: roots };
+    // Command links are limited to the two support commands and the settings page (footer "Hide" link).
+    panel.webview.options = { enableScripts: true, localResourceRoots: roots, enableCommandUris: commandUris('modelViewer') };
     const name = path.posix.basename(uri.path);
     panel.webview.html = buildHtml({
       cspSource: panel.webview.cspSource,
       scriptUri: panel.webview.asWebviewUri(vscode.Uri.joinPath(dist, 'webview.js')).toString(),
       styleUri: panel.webview.asWebviewUri(vscode.Uri.joinPath(media, 'webview.css')).toString(),
       title: name,
+      showSupportLinks: showLinks(vscode, 'modelViewer'),
     });
     let disposed = false;
     let counted = false; // one success per opened tab, for the rating prompt
@@ -89,6 +92,7 @@ class ModelEditorProvider {
 
 function activate(context) {
   rating = createRatingPrompt({ vscode, context, extensionId: 'zovo.3d-model-viewer', section: 'modelViewer', message: (n) => `3D Model Viewer has opened ${n} models for you. A rating helps other people find it.` });
+  registerSupport({ vscode, context, prefix: 'modelViewer', selfId: 'zovo.3d-model-viewer' });
   context.subscriptions.push(
     vscode.window.registerCustomEditorProvider(VIEW_TYPE, new ModelEditorProvider(context), {
       supportsMultipleEditorsPerDocument: true,

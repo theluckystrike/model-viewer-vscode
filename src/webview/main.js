@@ -76,6 +76,9 @@ ui.side = h('aside', { class: 'side' },
   h('section', {}, h('h2', { text: 'Scene' }), ui.tree));
 ui.status = h('div', { class: 'status' }, ui.hint = h('span', { class: 'hint' }), h('span', { class: 'grow' }), ui.timing = h('span', { class: 'timing' }));
 app.append(ui.toolbar, ui.anim, h('div', { class: 'main' }, ui.stage, ui.side), ui.status);
+// The Sponsor and More free viewers line from the host HTML (absent when modelViewer.showSupportLinks is off).
+const supportLine = document.getElementById('zovo-support');
+if (supportLine) { supportLine.classList.remove('zovo-support-fixed'); ui.status.append(supportLine); }
 
 const state = { grid: true, axes: false, wireframe: false, normals: false, bounds: false, measure: false, playing: true, loaded: false };
 let init = null;
