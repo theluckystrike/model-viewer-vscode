@@ -58,7 +58,7 @@ test('activate registers the custom editor and the commands; manifest matches', 
   const pkg = require('../package.json');
   assert.equal(pkg.contributes.customEditors[0].viewType, ext.VIEW_TYPE);
   assert.deepEqual(pkg.contributes.customEditors[0].selector.map(s => s.filenamePattern), ['*.glb', '*.gltf', '*.stl', '*.obj', '*.ply', '*.3mf']);
-  assert.ok(pkg.displayName.toLowerCase().startsWith('3d model viewer') && pkg.displayName.length <= 45);
+  assert.ok(pkg.displayName.toLowerCase().startsWith('stl viewer') && pkg.displayName.length <= 45);
   assert.ok(pkg.keywords.length <= 30);
   assert.equal(pkg.publisher, 'zovo');
   assert.match(pkg.version, /^\d+\.\d+\.\d+$/); // monetize.py rollouts bump it

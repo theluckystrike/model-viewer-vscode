@@ -1,4 +1,4 @@
-# 3D Model Viewer (GLB, glTF, STL, OBJ, PLY)
+# STL Viewer, OBJ Viewer & glTF 3D Model Viewer
 
 ![License MIT](https://img.shields.io/badge/license-MIT-blue)
 ![Works offline](https://img.shields.io/badge/network-none-green)
