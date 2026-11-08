@@ -367,6 +367,7 @@ async function start(m) {
   } catch (e) {
     showNotice(e && e.message ? e.message : String(e), 'error');
     ui.timing.textContent = `${m.name} · ${m.sizeText}`;
+    vscode.postMessage({ type: 'failed' }); // the file could not be drawn: no rating ask in this session
   }
 }
 

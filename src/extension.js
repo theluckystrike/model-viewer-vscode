@@ -68,6 +68,7 @@ class ModelEditorProvider {
           return;
         }
         if (msg.type === 'rendered') { if (!counted) { counted = true; rating.success(); } return; }
+        if (msg.type === 'failed') { rating.failure(); return; }
         if (msg.type === 'copy') { await vscode.env.clipboard.writeText(msg.text); await post({ type: 'copied' }); return; }
         if (msg.type === 'screenshot') {
           const base = name.replace(/\.[^.]+$/, '');

@@ -33,6 +33,7 @@ test('sizePlan: files over the limit are not loaded and get a clear message', ()
 test('only known webview messages pass', () => {
   assert.deepEqual(P.validateWebviewMessage({ type: 'ready', extra: 1 }), { ok: true, msg: { type: 'ready' } });
   assert.equal(P.validateWebviewMessage({ type: 'rendered' }).ok, true);
+  assert.deepEqual(P.validateWebviewMessage({ type: 'failed', x: 1 }), { ok: true, msg: { type: 'failed' } });
   assert.equal(P.validateWebviewMessage({ type: 'needBytes' }).ok, true);
   for (const bad of [null, 1, 'ready', {}, { type: 'writeFile', path: '/etc/x' }, { type: 'openExternal', url: 'https://x' }, { type: 'export' }])
     assert.equal(P.validateWebviewMessage(bad).ok, false, JSON.stringify(bad));
