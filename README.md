@@ -75,7 +75,7 @@ PLY files without faces open as point clouds, with their colours.
 | `modelViewer.background` | theme | Background when a file opens, the theme editor colour, dark or light |
 | `modelViewer.upAxis` | auto | Z up for STL and 3MF, Y up for the rest. Set y or z to force one. |
 | `modelViewer.maxFileMB` | 1024 | Files larger than this show a message and are not read |
-| `modelViewer.askForRating` | true | Ask one time for a Marketplace rating after a few days of use. Nothing is sent anywhere. |
+| `modelViewer.askForRating` | true | Ask for a Marketplace rating after 3 models that opened without an error, on 2 different days. "Later" asks one more time after 7 days, "No thanks" never again. It never asks after an error. Turn it off with `false`. |
 | `modelViewer.showSupportLinks` | true | Show the small Sponsor and More free viewers links in the status line. |
 
 ## Privacy and safety

@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.6 (2026-11-08)
+
+- The rating question now comes after 3 models that opened without an error, on 2 different days, and never after an error. "Later" asks one more time after 7 days, "No thanks" ends it, and it never asks more than 2 times. `modelViewer.askForRating: false` turns it off. Nothing else changed.
+
 ## 0.1.5 (2026-11-08)
 
 - The "More free viewers" list and the README now use the current Marketplace names and include the newest Zovo extensions: ZIP, GCode, EPUB, HAR, font and audio viewers.

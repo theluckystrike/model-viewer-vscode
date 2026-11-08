@@ -144,11 +144,11 @@ test('rendered counts one success per tab for the rating prompt', async () => {
   await f.send({ type: 'rendered' });
   await f.send({ type: 'rendered' });
   await new Promise(r => setTimeout(r, 10));
-  assert.equal(ctx.globalState.data.get('zovo.rating.v1').count, 1);
+  assert.equal(ctx.globalState.data.get('zovo.rating.v2').count, 1);
   const g = await open(model, ctx);
   await g.send({ type: 'rendered' });
   await new Promise(r => setTimeout(r, 10));
-  assert.equal(ctx.globalState.data.get('zovo.rating.v1').count, 2);
+  assert.equal(ctx.globalState.data.get('zovo.rating.v2').count, 2);
 });
 
 test('after dispose nothing is posted', async () => {

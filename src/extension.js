@@ -7,7 +7,7 @@ const { createRatingPrompt } = require('./rate');
 const { registerSupport, commandUris, showLinks } = require('./support');
 
 const VIEW_TYPE = 'modelViewer.preview';
-let rating = { success() {} };
+let rating = { success() {}, failure() {} };
 
 function settings() {
   const c = vscode.workspace.getConfiguration('modelViewer');
@@ -83,6 +83,7 @@ class ModelEditorProvider {
           await post({ type: 'saved', path: target.scheme === 'file' ? target.fsPath : target.toString(), bytes: msg.data.length });
         }
       } catch (e) {
+        if (msg.type === 'ready' || msg.type === 'needBytes') rating.failure();
         await post({ type: 'error', message: e && e.message ? e.message : String(e) });
       }
     });
@@ -91,7 +92,7 @@ class ModelEditorProvider {
 }
 
 function activate(context) {
-  rating = createRatingPrompt({ vscode, context, extensionId: 'zovo.3d-model-viewer', section: 'modelViewer', message: (n) => `3D Model Viewer has opened ${n} models for you. A rating helps other people find it.` });
+  rating = createRatingPrompt({ vscode, context, extensionId: 'zovo.3d-model-viewer', section: 'modelViewer', name: 'STL Viewer' });
   registerSupport({ vscode, context, prefix: 'modelViewer', selfId: 'zovo.3d-model-viewer' });
   context.subscriptions.push(
     vscode.window.registerCustomEditorProvider(VIEW_TYPE, new ModelEditorProvider(context), {

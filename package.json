@@ -2,7 +2,7 @@
   "name": "3d-model-viewer",
   "displayName": "STL Viewer, OBJ Viewer, GLB & glTF Viewer",
   "description": "STL viewer, OBJ viewer, GLB viewer and glTF viewer for 3D models in VS Code. Also opens PLY and 3MF, with wireframe, glTF animations, a scene tree, model stats, point-to-point measuring and PNG screenshots, all offline.",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "publisher": "zovo",
   "license": "MIT",
   "icon": "icon.png",
@@ -166,7 +166,7 @@
         "modelViewer.askForRating": {
           "type": "boolean",
           "default": true,
-          "description": "Ask one time for a Marketplace rating after you have used 3D Model Viewer for a few days. You can answer \"Later\" or \"Don't ask again\". Nothing is sent anywhere."
+          "description": "Ask for a Marketplace rating after 3 models that opened without an error, on 2 different days. \"Later\" asks one more time after 7 days, \"No thanks\" never asks again. It never asks after an error or more than 2 times. Nothing is sent anywhere."
         },
         "modelViewer.showSupportLinks": {
           "type": "boolean",
