@@ -43,3 +43,24 @@ button:focus-visible, select:focus-visible, input:focus-visible { outline: 1px s
 .status { display: flex; gap: 8px; padding: 3px 8px; border-top: 1px solid var(--vscode-panel-border, rgba(128,128,128,.3)); font-size: 12px; min-height: 18px; }
 .status .hint { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .status .timing { opacity: .7; white-space: nowrap; }
+/* Zovo Pro tools (lane PRO4) */
+.pro-badge { font-size: 9px; font-weight: 700; letter-spacing: .05em; padding: 0 4px; border-radius: 3px; line-height: 14px; background: var(--vscode-badge-background, #4d4d4d); color: var(--vscode-badge-foreground, #fff); text-transform: none; }
+.pro-badge[hidden] { display: none; }
+button[hidden], section[hidden] { display: none; }
+.sectionbar input[type=range] { flex: 1; min-width: 120px; max-width: 360px; }
+.sectionbar .timetext { min-width: 96px; }
+.pro-read { font-variant-numeric: tabular-nums; opacity: .9; }
+.pro-print h3 { font-size: 11px; opacity: .8; margin: 10px 0 4px; font-weight: 600; }
+.pro-note { margin: 4px 0 6px; line-height: 1.4; opacity: .85; }
+.pro-note.small { font-size: 11px; opacity: .7; }
+.pro-note.err, .stats .row.warn .v { color: var(--vscode-errorForeground, #f48771); }
+.stats .row.ok .v { color: var(--vscode-testing-iconPassed, #73c991); }
+.pro-meta { font-size: 11px; opacity: .7; margin: 4px 0; }
+.pro-links { font-size: 11px; margin: 4px 0; }
+.pro-fields { display: grid; gap: 4px; margin: 4px 0; }
+.pro-field { display: flex; align-items: center; gap: 6px; }
+.pro-field > span:first-child { width: 58px; flex: none; opacity: .75; }
+.pro-field select { flex: 1; min-width: 0; }
+.pro-num { width: 70px; font: inherit; color: var(--vscode-input-foreground); background: var(--vscode-input-background); border: 1px solid var(--vscode-input-border, transparent); border-radius: 2px; padding: 1px 4px; }
+.pro-suffix { opacity: .7; font-size: 11px; }
+.pro-actions { display: flex; flex-wrap: wrap; gap: 4px; margin: 6px 0; }

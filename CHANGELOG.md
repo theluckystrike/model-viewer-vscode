@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.2.0 (2026-11-09)
+
+- New, optional Zovo Pro tools, each with 3 free tries on your computer:
+  - Print check: size, volume, surface area, watertight or not (open, non-manifold and flipped edges, zero-area triangles, separate parts), problem edges marked on the model, and weight, filament length and material cost for 8 materials at your infill. Copy, or save as Markdown or JSON.
+  - Section view: cut the model along X, Y or Z with a slider, see the cut face, read its area and perimeter, and save the outline as an SVG in millimetres.
+  - Turntable export: a 360 degree GIF (480 to 800 pixels) or 72 PNG frames, with your view and background.
+- Everything that was free stays free: opening all six formats, measuring, the helpers, shading, the scene tree, animations, Copy and Screenshot. Nothing about Pro shows when a file opens. `modelViewer.showProFeatures: false` hides the Pro tools.
+- Zovo Pro is USD 19 once for every Zovo viewer: GitHub Sponsors, or PayPal for a license key. New commands: Get Zovo Pro, Unlock Zovo Pro with GitHub Sponsors, Enter Zovo Pro License Key, Remove Zovo Pro from This Editor.
+- The rating question now counts 2 models in 2 sessions at least 4 hours apart, also in a window that stays open, and "Rate it" opens Open VSX in Cursor, Windsurf and VSCodium. Rate comes first in the footer.
+- STL files whose facet normals are all zero (many exporters write them that way) no longer draw black: the normals are computed, and the status line says so.
+- "More free viewers" starts with the Zovo extensions most related to this one. The README names the custom format work offer.
+
 ## 0.1.8 (2026-11-09)
 
 - PayPal is now in the footer links and in the README "Support Zovo" section, next to GitHub Sponsors. Both are optional; the viewer works the same without them.

@@ -12,6 +12,7 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
 import P from '../core/protocol.js';
 import S from '../core/stats.js';
+import { setupPro } from './pro.js';
 
 const vscode = acquireVsCodeApi();
 const MAX_NORMALS = 250000; // vertex normals drawn for models up to this many vertices
@@ -52,11 +53,20 @@ ui.up = h('select', { 'aria-label': 'Up axis', title: 'Which model axis points u
 ui.measure = btn('Measure', 'Click two points on the model to measure the distance (M)', () => setMeasure(!state.measure), { 'aria-pressed': 'false' });
 ui.shot = btn('Screenshot', 'Save the view as a PNG image', () => screenshot());
 ui.panelBtn = btn('Panel', 'Show or hide the stats and scene panel (P)', () => { ui.side.hidden = !ui.side.hidden; ui.panelBtn.setAttribute('aria-pressed', String(!ui.side.hidden)); resize(); }, { 'aria-pressed': 'true' });
+// Zovo Pro tools (src/webview/pro.js): Section and Turntable buttons, the Print check panel and the section bar.
+const pro = setupPro({
+  h, ui, vscode,
+  get model() { return model; }, get root() { return root; }, get scene() { return scene; }, get camera() { return camera; },
+  get controls() { return controls; }, get renderer() { return renderer; }, get fmt() { return fmt; }, get stats() { return stats; },
+  get name() { return init ? init.name : 'model'; }, get upAxis() { return ui.up.value; },
+  setHint: t => setHint(t), invalidate: () => invalidate(), resize: () => resize(), eachMaterial: fn => eachMaterial(fn),
+  isPlaying: () => !!(action && state.playing), setPlaying: on => setPlaying(on),
+});
 ui.toolbar = h('div', { class: 'toolbar', role: 'toolbar' },
   ui.fit, h('span', { class: 'sep' }),
   toggle('Grid', 'Ground grid (G)', 'grid'), toggle('Axes', 'Model axes: X red, Y green, Z blue (A)', 'axes'),
   toggle('Wireframe', 'Wireframe (W)', 'wireframe'), toggle('Normals', 'Vertex normals (N)', 'normals'), toggle('Bounds', 'Bounding box (B)', 'bounds'),
-  h('span', { class: 'sep' }), ui.shading, ui.bg, ui.up, h('span', { class: 'sep' }), ui.measure, ui.shot, h('span', { class: 'grow' }), ui.panelBtn);
+  h('span', { class: 'sep' }), ui.shading, ui.bg, ui.up, h('span', { class: 'sep' }), ui.measure, ui.shot, ui.sectionBtn, ui.turnBtn, h('span', { class: 'grow' }), ui.panelBtn);
 
 ui.clip = h('select', { 'aria-label': 'Animation clip', title: 'Animation clip' });
 ui.play = btn('Pause', 'Play or pause the animation (Space)', () => setPlaying(!state.playing));
@@ -73,9 +83,10 @@ ui.tree = h('div', { class: 'tree', role: 'tree', 'aria-label': 'Scene tree' });
 ui.copy = h('button', { type: 'button', class: 'link', title: 'Copy the stats as tab-separated text', text: 'Copy', onclick: () => copyStats() });
 ui.side = h('aside', { class: 'side' },
   h('section', {}, h('h2', {}, 'Model ', ui.copy), ui.stats),
+  pro.panel,
   h('section', {}, h('h2', { text: 'Scene' }), ui.tree));
 ui.status = h('div', { class: 'status' }, ui.hint = h('span', { class: 'hint' }), h('span', { class: 'grow' }), ui.timing = h('span', { class: 'timing' }));
-app.append(ui.toolbar, ui.anim, h('div', { class: 'main' }, ui.stage, ui.side), ui.status);
+app.append(ui.toolbar, ui.anim, pro.sectionBar, h('div', { class: 'main' }, ui.stage, ui.side), ui.status);
 // The Sponsor and More free viewers line from the host HTML (absent when modelViewer.showSupportLinks is off).
 const supportLine = document.getElementById('zovo-support');
 if (supportLine) { supportLine.classList.remove('zovo-support-fixed'); ui.status.append(supportLine); }
@@ -157,6 +168,7 @@ new ResizeObserver(resize).observe(ui.stage);
 let firstFrame = true;
 function frame(ts) {
   requestAnimationFrame(frame);
+  if (pro.busy()) { lastTs = ts; return; } // a turntable export draws the frames itself
   const dt = lastTs ? Math.min((ts - lastTs) / 1000, 0.1) : 0;
   lastTs = ts;
   const moved = controls.update();
@@ -204,7 +216,9 @@ window.addEventListener('message', ev => {
   if (m.type === 'init') start(m);
   else if (m.type === 'bytes') { if (pendingBytes) pendingBytes(m.data); }
   else if (m.type === 'saved') setHint(m.cancelled ? 'Screenshot not saved.' : `Screenshot saved: ${m.path} (${P.fmtSize(m.bytes)})`);
-  else if (m.type === 'copied') setHint('Stats copied to the clipboard.');
+  else if (m.type === 'copied') setHint('Copied to the clipboard.');
+  else if (m.type === 'hint') setHint(m.text);
+  else if (pro.onMessage(m)) { /* Zovo Pro message */ }
   else if (m.type === 'error') { if (m.soft) setHint(m.message); else showNotice(m.message, 'error'); }
 });
 let pendingBytes = null;
@@ -279,6 +293,9 @@ async function parse(bytes, src) {
   }
   if (fmt === 'stl') {
     const geo = new STLLoader().parse(buf(bytes));
+    // Many exporters write 0 0 0 as every facet normal; lit with those, the part is drawn black.
+    const nrm = geo.attributes.normal;
+    if (nrm && !nrm.array.some(v => v !== 0)) { geo.computeVertexNormals(); notes.push('The file has no facet normals, so they were computed.'); }
     geo.userData.faceted = true;
     const mesh = new THREE.Mesh(geo, defaultMaterial(geo));
     mesh.name = init.name;
@@ -360,6 +377,7 @@ async function start(m) {
     setControlsEnabled(true);
     syncToggles();
     state.loaded = true;
+    pro.loaded();
     const t2 = performance.now();
     ui.timing.textContent = `${m.name} · ${m.sizeText} · read ${((t1 - t0) / 1000).toFixed(2)} s, built ${((t2 - t1) / 1000).toFixed(2)} s`;
     setHint(res.notes.join(' ') || 'Drag to orbit, right-drag or Shift-drag to pan, scroll to zoom.');
@@ -376,7 +394,7 @@ function applyUp() {
   root.rotation.set(ui.up.value === 'z' ? -Math.PI / 2 : 0, 0, 0);
   root.updateMatrixWorld(true);
 }
-ui.up.addEventListener('change', () => { applyUp(); clearMeasure(); fitView(); buildGrid(); refreshBounds(); invalidate(); });
+ui.up.addEventListener('change', () => { applyUp(); clearMeasure(); fitView(); buildGrid(); refreshBounds(); pro.modelChanged(); invalidate(); });
 
 function visibleBox(obj) {
   const b = new THREE.Box3();
@@ -467,7 +485,7 @@ function modelBox() {
 
 function eachMaterial(fn) {
   if (!model) return;
-  model.traverse(o => { if (o.isMesh && o.material) (Array.isArray(o.material) ? o.material : [o.material]).forEach(m => fn(m, o)); });
+  model.traverse(o => { if (o.isMesh && o.material && !o.userData.helper) (Array.isArray(o.material) ? o.material : [o.material]).forEach(m => fn(m, o)); });
 }
 
 function setToggle(key, on) {
@@ -607,7 +625,7 @@ function buildTree() {
     }
     const cb = h('input', { type: 'checkbox', 'aria-label': 'Visible' });
     cb.checked = o.visible;
-    cb.addEventListener('change', () => { o.visible = cb.checked; refreshBounds(); if (state.normals) buildNormals(); invalidate(); });
+    cb.addEventListener('change', () => { o.visible = cb.checked; refreshBounds(); if (state.normals) buildNormals(); pro.modelChanged(); invalidate(); });
     const name = h('button', { type: 'button', class: 'node-name', title: 'Frame this node', text: o.name || `(${kind})` });
     name.addEventListener('click', () => fitView(o));
     ui.tree.append(h('div', { class: 'node', role: 'treeitem', 'data-depth': depth },
@@ -732,7 +750,7 @@ window.modelViewerProbe = () => ({
   loaded: state.loaded, coverage: state.loaded ? coverage() : 0, state: { ...state }, stats, unit,
   cameraDistance: camera.position.distanceTo(controls.target), radius,
   clip: action ? action.getClip().name : null, time: action ? action.time : null,
-  shading: ui.shading.value, background: ui.bg.value, up: ui.up.value,
+  shading: ui.shading.value, background: ui.bg.value, up: ui.up.value, pro: pro.probe(),
 });
 
 resize();

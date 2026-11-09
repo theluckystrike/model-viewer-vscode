@@ -31,6 +31,38 @@ function sizePlan(size, maxFileMB) {
 }
 
 const isBytes = v => v instanceof Uint8Array;
+const PNG_SIG = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
+const PRO_FEATURES = ['print', 'section', 'turntable'];
+/** Files the Pro tools save: file name suffix, extension and save dialog filter. */
+const SAVE_KINDS = {
+  'report-md': { suffix: '-print-check', ext: 'md', filter: 'Markdown' },
+  'report-json': { suffix: '-print-check', ext: 'json', filter: 'JSON' },
+  'section-svg': { suffix: '-section', ext: 'svg', filter: 'SVG drawing' },
+};
+const PRINT_DEFAULTS = { material: 'PLA', infill: 15, wall: 0.8, diameter: 1.75, pricePerKg: 20, unit: 'mm' };
+const MATERIAL_NAMES = ['PLA', 'PETG', 'ABS', 'ASA', 'TPU', 'Nylon (PA12)', 'PC', 'Resin (standard)'];
+const num = (v, lo, hi, d) => (typeof v === 'number' && Number.isFinite(v) && v >= lo && v <= hi ? v : d);
+/** Only the valid fields of a partial prefs object (one change from the webview). null when none is valid. */
+function cleanPrefsPatch(p) {
+  if (!p || typeof p !== 'object') return null;
+  const full = cleanPrefs(p);
+  const out = {};
+  for (const k of Object.keys(PRINT_DEFAULTS)) if (k in p && full[k] === p[k]) out[k] = p[k];
+  return Object.keys(out).length ? out : null;
+}
+/** Print check settings, every field checked; unknown values fall back to the defaults. */
+function cleanPrefs(p) {
+  if (!p || typeof p !== 'object') return null;
+  const d = PRINT_DEFAULTS;
+  return {
+    material: MATERIAL_NAMES.includes(p.material) ? p.material : d.material,
+    infill: num(p.infill, 0, 100, d.infill),
+    wall: num(p.wall, 0, 20, d.wall),
+    diameter: [1.75, 2.85, 3].includes(p.diameter) ? p.diameter : d.diameter,
+    pricePerKg: num(p.pricePerKg, 0, 100000, d.pricePerKg),
+    unit: ['mm', 'cm', 'm', 'in'].includes(p.unit) ? p.unit : d.unit,
+  };
+}
 const str = (v, max) => typeof v === 'string' && v.length <= max;
 
 /** Only known webview messages pass, with checked fields. Everything else is dropped. */
@@ -53,6 +85,35 @@ function validateWebviewMessage(m) {
     case 'copy':
       if (!str(m.text, 100000)) return { ok: false };
       return { ok: true, msg: { type: 'copy', text: m.text } };
+    // Zovo Pro (lane PRO4)
+    case 'proAsk':
+    case 'proUsed':
+      if (!PRO_FEATURES.includes(m.feature)) return { ok: false };
+      return { ok: true, msg: { type: m.type, feature: m.feature } };
+    case 'proCmd':
+      if (!['getPro', 'unlock', 'enterKey', 'hide'].includes(m.cmd)) return { ok: false };
+      return { ok: true, msg: { type: 'proCmd', cmd: m.cmd } };
+    case 'saveText':
+      if (!SAVE_KINDS[m.kind] || !str(m.text, 20 * MB)) return { ok: false };
+      return { ok: true, msg: { type: 'saveText', kind: m.kind, text: m.text } };
+    case 'printPrefs': {
+      // One changed field at a time; the host merges it into the stored settings.
+      const p = cleanPrefsPatch(m.prefs);
+      return p ? { ok: true, msg: { type: 'printPrefs', prefs: p } } : { ok: false };
+    }
+    case 'turntableFrame': {
+      if (!Number.isInteger(m.job) || !Number.isInteger(m.index) || m.index < 0 || m.index > 9999) return { ok: false };
+      if (!isBytes(m.data) || m.data.length < 8 || m.data.length > 100 * MB || !PNG_SIG.every((b, i) => m.data[i] === b)) return { ok: false };
+      return { ok: true, msg: { type: 'turntableFrame', job: m.job, index: m.index, data: m.data } };
+    }
+    case 'turntableData': {
+      if (!Number.isInteger(m.job) || !isBytes(m.data) || m.data.length < 14 || m.data.length > 1024 * MB) return { ok: false };
+      if (String.fromCharCode(...m.data.subarray(0, 6)) !== 'GIF89a') return { ok: false };
+      return { ok: true, msg: { type: 'turntableData', job: m.job, data: m.data } };
+    }
+    case 'turntableEnd':
+      if (!Number.isInteger(m.job)) return { ok: false };
+      return { ok: true, msg: { type: 'turntableEnd', job: m.job, ok: m.ok === true, cancelled: m.cancelled === true, frames: Number.isInteger(m.frames) ? m.frames : 0, error: str(m.error, 500) ? m.error : '' } };
     default:
       return { ok: false };
   }
@@ -133,4 +194,4 @@ function mtlLibs(text) {
   return out;
 }
 
-module.exports = { MB, FORMATS, UNITS, formatOf, fmtSize, sizePlan, validateWebviewMessage, sniff, mtlLibs };
+module.exports = { MB, FORMATS, UNITS, formatOf, fmtSize, sizePlan, validateWebviewMessage, sniff, mtlLibs, PRO_FEATURES, SAVE_KINDS, PRINT_DEFAULTS, cleanPrefs, cleanPrefsPatch };

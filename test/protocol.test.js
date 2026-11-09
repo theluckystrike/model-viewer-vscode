@@ -105,8 +105,41 @@ test('webview code: no innerHTML, no eval, fetch only for the model and its neig
   assert.equal(fetches.length, 2, 'the model file and the .mtl next to it');
 });
 
-test('extension host writes only the screenshot', () => {
+test('extension host writes only files the user picked: the screenshot and the Pro exports (report, SVG, turntable)', () => {
   const src = fs.readFileSync(path.join(__dirname, '..', 'src', 'extension.js'), 'utf8');
-  assert.equal((src.match(/writeFile\(/g) || []).length, 1);
+  assert.equal((src.match(/writeFile\(/g) || []).length, 4);
+  assert.equal((src.match(/showSaveDialog\(/g) || []).length, 3);
+  assert.equal((src.match(/showOpenDialog\(/g) || []).length, 1);
   assert.doesNotMatch(src, /https?:\/\//);
+});
+
+test('Pro messages: only known tools, kinds and well-formed files pass', () => {
+  const v = P.validateWebviewMessage;
+  assert.equal(v({ type: 'proAsk', feature: 'print' }).ok, true);
+  assert.equal(v({ type: 'proAsk', feature: 'deleteAll' }).ok, false);
+  assert.equal(v({ type: 'proCmd', cmd: 'getPro' }).ok, true);
+  assert.equal(v({ type: 'proCmd', cmd: 'workbench.action.terminal.new' }).ok, false);
+  assert.equal(v({ type: 'saveText', kind: 'report-md', text: 'x' }).ok, true);
+  assert.equal(v({ type: 'saveText', kind: 'exe', text: 'x' }).ok, false);
+  assert.equal(v({ type: 'saveText', kind: 'report-md', text: 5 }).ok, false);
+  const gif = Uint8Array.from([71, 73, 70, 56, 57, 97, 1, 0, 1, 0, 0, 0, 0, 59]);
+  assert.equal(v({ type: 'turntableData', job: 1, data: gif }).ok, true);
+  assert.equal(v({ type: 'turntableData', job: 1, data: gif.slice().fill(0) }).ok, false);
+  assert.equal(v({ type: 'turntableData', job: '1', data: gif }).ok, false);
+  const png = Uint8Array.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0]);
+  assert.equal(v({ type: 'turntableFrame', job: 2, index: 0, data: png }).ok, true);
+  assert.equal(v({ type: 'turntableFrame', job: 2, index: -1, data: png }).ok, false);
+  assert.equal(v({ type: 'turntableFrame', job: 2, index: 0, data: gif }).ok, false);
+  const e = v({ type: 'turntableEnd', job: 3, ok: 'yes', error: 'x'.repeat(600) });
+  assert.deepEqual([e.msg.ok, e.msg.error], [false, '']);
+});
+
+test('print prefs: the material list matches the densities the print check knows', () => {
+  const PC = require('../src/core/printcheck');
+  for (const m of Object.keys(PC.MATERIALS)) assert.equal(P.cleanPrefs({ material: m }).material, m);
+  assert.equal(P.cleanPrefs({ material: 'Unobtainium' }).material, 'PLA');
+  assert.equal(P.cleanPrefs(null), null);
+  assert.deepEqual(P.cleanPrefsPatch({ infill: 40, material: 'x', extra: 1 }), { infill: 40 });
+  assert.equal(P.cleanPrefsPatch({ infill: -5 }), null);
+  assert.deepEqual(Object.keys(PC.UNIT_MM).sort(), ['cm', 'in', 'm', 'mm']);
 });
