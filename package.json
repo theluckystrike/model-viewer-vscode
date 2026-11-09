@@ -2,7 +2,7 @@
   "name": "3d-model-viewer",
   "displayName": "STL Viewer, OBJ Viewer, GLB & glTF Viewer",
   "description": "STL viewer, OBJ viewer, GLB viewer and glTF viewer for 3D models in VS Code. Also opens PLY and 3MF, with wireframe, glTF animations, a scene tree, model stats, point-to-point measuring and PNG screenshots, all offline.",
-  "version": "0.1.6",
+  "version": "0.1.8",
   "publisher": "zovo",
   "license": "MIT",
   "icon": "icon.png",

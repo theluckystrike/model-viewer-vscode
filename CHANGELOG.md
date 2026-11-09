@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.8 (2026-11-09)
+
+- PayPal is now in the footer links and in the README "Support Zovo" section, next to GitHub Sponsors. Both are optional; the viewer works the same without them.
+- README: a short "Free and Zovo Pro" note. This viewer stays free and complete; nothing in it becomes paid.
+- No change to how files open or look.
+
 ## 0.1.6 (2026-11-08)
 
 - The rating question now comes after 3 models that opened without an error, on 2 different days, and never after an error. "Later" asks one more time after 7 days, "No thanks" ends it, and it never asks more than 2 times. `modelViewer.askForRating: false` turns it off. Nothing else changed.
